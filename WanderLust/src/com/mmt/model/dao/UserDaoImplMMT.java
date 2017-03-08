@@ -9,13 +9,51 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+
 import com.mmt.model.bean.User;
+
+
+
+
+
 
 public class UserDaoImplMMT implements UserDaoMMT {
 	Connection con;
+	
+	
+	
+	private Configuration configuration;
+	private SessionFactory factory;
+	private Transaction transaction;
+	public UserDaoImplMMT() {
+		configuration= new Configuration();
+		configuration.configure("hibernate.cfg.xml");
+		factory=configuration.buildSessionFactory();
+		transaction=null;
+	}
 	@Override
 	public int insert(User user) throws SQLException, ClassNotFoundException, IOException {
-		int row;
+		
+		Session session=factory.openSession();
+		session.close();
+		try {
+			transaction=session.beginTransaction();
+			session.save(user);
+			transaction.commit();
+			return 1;
+		} catch (Exception e) {
+			transaction.rollback();
+			return 0;
+		}
+		
+		finally {
+			session.close();
+		}
+		/*int row;
 		con=DbConnection.dbConnection();
 		PreparedStatement pst = con.prepareStatement("insert into mmt_user values(?,?,?,?,?,?)");
 		pst.setString(1, user.getUserId());
@@ -29,9 +67,12 @@ public class UserDaoImplMMT implements UserDaoMMT {
 		row=pst.executeUpdate();
 		
 		con.close();
-		return row;
+		return row;*/
+		
 		
 	}
+
+	
 
 	@Override
 	public User search(String uid) throws SQLException, ClassNotFoundException, IOException {
